@@ -31,7 +31,10 @@ let original_url = '';
 
 app.post('/api/shorturl', function (req, res) {
   original_url = req.body.url;
-  dns.lookup(original_url.substring(8, original_url.length), function (err, addresses, family) {
+  if (original_url.startsWith('https')) {
+    original_url= original_url.replace('https://','');
+  }
+  dns.lookup(original_url, function (err, addresses, family) {
     console.log('& ' + addresses + 'Family' + family)
     if (err) {
       res.json({ error: 'invalid url' });
