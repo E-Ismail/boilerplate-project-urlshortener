@@ -45,7 +45,6 @@ let responseObject = {};
 
 app.post('/api/shorturl', express.urlencoded(), function (req, res) {
   let original_url = req.body.url;
-  console.log(original_url);
   let inputUrl = req.body.url
   responseObject['original_url'] = inputUrl
   let urlRegex = new RegExp(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi)
@@ -68,7 +67,6 @@ app.post('/api/shorturl', express.urlencoded(), function (req, res) {
         console.log(error);
       }
       if (!error) {
-        console.log('here')
         console.log(result)
         Url.findOneAndUpdate(
           { original: inputUrl },
@@ -79,7 +77,6 @@ app.post('/api/shorturl', express.urlencoded(), function (req, res) {
           { new: true, upsert: true, useFindAndModify: true },
           (error, savedUrl) => {
             if (!error) {
-              console.log('savedUrl' + savedUrl)
               responseObject['short_url'] = savedUrl.short
               res.json(responseObject)
             } else {
