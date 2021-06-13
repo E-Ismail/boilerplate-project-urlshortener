@@ -50,9 +50,11 @@ app.post('/api/shorturl', express.urlencoded(), function (req, res) {
   let inputUrl = req.body.url
   responseObject['original_url'] = inputUrl;
   let urlRegex = new RegExp(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/gi)
-  const REPLACE_REGEX = /^https?:\/\//i
+  const REPLACE_REGEX = /^https?:\/\//i;
   original_url_regexed = original_url.replace(REPLACE_REGEX,'');
-  dns.lookup(original_url_regexed, function (err, addresses, family) {
+  let queries = original_url_regexed.substring(original_url_regexed.indexOf('/'),original_url_regexed.length);
+  let url = original_url_regexed.slice(0,original_url_regexed.indexOf('/'));
+  dns.lookup(url, function (err, addresses, family) {
     console.log(err)
     if (err) {
       res.json({ error: 'invalid url' });
