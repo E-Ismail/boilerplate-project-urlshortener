@@ -4,6 +4,7 @@ const cors = require('cors');
 const app = express();
 const mongoose = require('mongoose');
 const mongodb = require('mongodb');
+const dns = require('dns');
 const { response } = require('express');
 const DB_URI = process.env.MONGO_URI;
 
@@ -48,62 +49,52 @@ app.post('/api/shorturl', express.urlencoded(), function (req, res) {
   console.log(original_url)
   let inputUrl = req.body.url
   responseObject['original_url'] = inputUrl
-  let urlRegex = new RegExp(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)?/gi)
+  // let urlRegex = new RegExp(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/gi);
 
-  if (!inputUrl.match(urlRegex)) {
-    return response.json({ error: 'invalid URL' });
-  }
+  // if (!inputUrl.match(urlRegex)) {
+  //   return response.json({ error: 'invalid URL' });
+  // }
+  dns.lookup(original_url, function (err, addresses, family) {
+    if (err) {
+      res.json({ error: 'invalid url' });
+    } else {
+      responseObject['original_url'] = inputUrl
 
-  responseObject['original_url'] = inputUrl
+      let inputShort = 1
 
-  let inputShort = 1
-
-  Url.findOne({})
-    .sort({ short: 'desc' })
-    .exec((error, result) => {
-      if (!error && result != undefined) {
-        inputShort = result.short + 1
-      } else {
-        console.log(error);
-      }
-      if (!error) {
-        console.log(result)
-        Url.findOneAndUpdate(
-          { original: inputUrl },
-          {
-            original: inputUrl,
-            short: inputShort
-          },
-          { new: true, upsert: true },
-          (error, savedUrl) => {
-            if (!error) {
-              responseObject['short_url'] = savedUrl.short
-              res.json(responseObject)
-            } else {
-              console.log(error);
-            }
+      Url.findOne({})
+        .sort({ short: 'desc' })
+        .exec((error, result) => {
+          if (!error && result != undefined) {
+            inputShort = result.short + 1
+          } else {
+            console.log(error);
           }
-        )
-      } else {
-        console.log(error);
-      }
-    })
+          if (!error) {
+            console.log(result)
+            Url.findOneAndUpdate(
+              { original: inputUrl },
+              {
+                original: inputUrl,
+                short: inputShort
+              },
+              { new: true, upsert: true },
+              (error, savedUrl) => {
+                if (!error) {
+                  responseObject['short_url'] = savedUrl.short
+                  res.json(responseObject)
+                } else {
+                  console.log(error);
+                }
+              }
+            )
+          } else {
+            console.log(error);
+          }
+        })
+    }
+  });
 });
-
-
-
-// dns.lookup(original_url, function (err, addresses, family) {
-//   console.log('& ' + addresses + 'Family' + family);
-
-//   if (err) {
-//     res.json({ error: 'invalid url' });
-//   } else {
-//     resObject['original_url'] = original_url;
-//     resObject['short_url'] = short_url;
-//     res.json(resObject);
-//   }
-// });
-
 
 app.get('/api/shorturl/:url_id', function (req, res) {
   let urlID = req.params.url_id;
