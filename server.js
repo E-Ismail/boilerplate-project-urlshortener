@@ -46,15 +46,14 @@ let responseObject = {};
 
 app.post('/api/shorturl', express.urlencoded(), function (req, res) {
   let original_url = req.body.url;
-  console.log(original_url)
+  console.log('url Input: ' + original_url)
   let inputUrl = req.body.url
-  responseObject['original_url'] = inputUrl
-  // let urlRegex = new RegExp(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/gi);
-
-  // if (!inputUrl.match(urlRegex)) {
-  //   return response.json({ error: 'invalid URL' });
-  // }
-  dns.lookup(original_url, function (err, addresses, family) {
+  responseObject['original_url'] = inputUrl;
+  let urlRegex = new RegExp(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/gi)
+  const REPLACE_REGEX = /^https?:\/\//i
+  original_url_regexed = original_url.replace(REPLACE_REGEX,'');
+  dns.lookup(original_url_regexed, function (err, addresses, family) {
+    console.log(err)
     if (err) {
       res.json({ error: 'invalid url' });
     } else {
@@ -94,6 +93,8 @@ app.post('/api/shorturl', express.urlencoded(), function (req, res) {
         })
     }
   });
+
+
 });
 
 app.get('/api/shorturl/:url_id', function (req, res) {
