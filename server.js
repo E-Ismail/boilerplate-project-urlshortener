@@ -8,7 +8,7 @@ const { response } = require('express');
 const DB_URI = process.env.MONGO_URI;
 
 mongoose
-  .connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: true })
   .then(() => {
     console.log('Connection to MongoDB established!')
   });
@@ -45,6 +45,7 @@ let responseObject = {};
 
 app.post('/api/shorturl', express.urlencoded(), function (req, res) {
   let original_url = req.body.url;
+  console.log(original_url)
   let inputUrl = req.body.url
   responseObject['original_url'] = inputUrl
   let urlRegex = new RegExp(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi)
@@ -74,7 +75,7 @@ app.post('/api/shorturl', express.urlencoded(), function (req, res) {
             original: inputUrl,
             short: inputShort
           },
-          { new: true, upsert: true, useFindAndModify: true },
+          { new: true, upsert: true },
           (error, savedUrl) => {
             if (!error) {
               responseObject['short_url'] = savedUrl.short
